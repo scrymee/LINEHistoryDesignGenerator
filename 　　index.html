@@ -1,0 +1,493 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <!-- Bootstrap CSS -->
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-EVSTQN3/azprG1Anm3QDgpJLIm9Nao0Yz1ztcQTwFspd3yD65VohhpuuCOmLASjC" crossorigin="anonymous">
+        <title>LINE Viewer</title>
+    </head>
+    <body>
+        <div id="container" style="width:500px;margin:50px;padding: 50px 50px 100px 50px; border: 1px solid #666;border-radius: 5px;">
+          
+          <div class="mb-3">
+            <label for="lineName" class="form-label">📓ユーザー名</label>
+            <input type="text" class="form-control" id="lineName">
+            <p class="text-black-50 small">※自分側のユーザー名を入力してください(例：たろう)（自分が投稿した💬になります）</p>
+          </div>
+
+          <div class="mb-3">
+            <label for="lineHistoryText" class="form-label">📓貼り付けテキスト</label>
+            <textarea class="form-control" id="lineHistoryText" rows="10" cols="10"></textarea>
+            <p class="text-black-50 small">※ユーザー名に半角スペース・全角スペースが含まれている場合正常に動作しません</p>
+          </div>
+          <div class="float-end">
+            <button id="createLineImage" class="btn btn-primary btn-lg" data-bs-toggle="modal" data-bs-target="#exampleModal">作成する</button>
+            <!-- <button id="createLineImageForAnimation">アニメーションで実行</button>
+            <button id="createLineImageForClick">クリックで一つずつ</button> -->
+          </div>
+
+          <!-- Modal start-->
+          <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                  <!-- ここからLINEのデザイン -->
+                  <div id="lineView"class="line__container" style="border:1px solid black;width:500px;height:1100px">
+                    <div class="line__title">
+                      チャット名
+                    </div>
+                    <div class="line__contents scroll" id="lineContents">
+                    </div>
+                  </div>
+                  <!-- ここまでLINEのデザイン -->
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">閉じる</button>
+                  <button type="button" class="btn btn-primary">HTMLを保存する</button>
+                </div>
+              </div>
+            </div>
+          </div>
+          <!-- Modal end-->
+
+        </div>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-MrcW6ZMFYlzcLA8Nl+NtUVF0sA7MsXsP1UyJoMp4YLEuNSfAP+JcXn/tWtIaxVXM" crossorigin="anonymous"></script>
+        <script>
+
+            document.getElementById('createLineImage').addEventListener('click', () => {
+
+                // ユーザーネームを自分とする
+                const name = document.getElementById('lineName').value
+                const line = new LINE(name);
+
+                line.reset()
+
+                const text = getInputLineHistory()
+                const textArr = line.formatLineMsgArr(text)
+
+                // ユーザートーク内容を設定
+                textArr.forEach(text => {
+                  line.createMessage(text)
+                })
+            })
+            // document.getElementById('createLineImageForAnimation').addEventListener('click', async () => {
+
+            //     // ユーザーネームを自分とする
+            //     const name = document.getElementById('lineName').value
+            //     const line = new LINE(name);
+
+            //     const text = getInputLineHistory()
+            //     const textArr = line.formatLineMsgArr(text)
+
+            //     // ユーザートーク内容を設定
+            //     for(let i =0; i <textArr.length; i++) {
+            //       line.createMessage(textArr[i])
+            //       await sleep()
+            //     }
+            // })
+
+            // let clickCount = 0;
+            // document.getElementById('createLineImageForClick').addEventListener('click', () => {
+
+            //     // ユーザーネームを自分とする
+            //     const name = document.getElementById('lineName').value
+            //     const line = new LINE(name);
+
+            //     const text = getInputLineHistory()
+            //     const textArr = line.formatLineMsgArr(text)
+
+            //     if(clickCount + 1 > textArr.length) {
+            //       console.log('end')
+            //       return
+            //     }
+            //     console.log(clickCount)
+            //     console.log(textArr.length)
+
+            //     // ユーザートーク内容を設定
+            //     line.createMessage(textArr[clickCount])
+            //     clickCount++
+            // })
+
+            // function sleep()
+            // {
+            //   console.log('A')
+            //   return new Promise(r => setTimeout(r, 2000))
+            // }
+
+
+
+            function getInputLineHistory() {
+                const textarea = document.getElementById('lineHistoryText')
+                const lineHistoryData = textarea.value
+                return lineHistoryData
+            }
+
+
+            
+
+            //クラスの定義
+            class LINE {
+
+              // ダブルクオーテーション内の改行を変換
+              NEWLINE = "<br>"
+              // スペースを区切るときのデリミタ
+              DELIMITER = '[¥]'
+
+              /**
+               * yourNameの文字列が自身の吹き出しになる 
+               * 
+               */
+              constructor(yourName) {
+                // type はPartnerかYpu
+                this._yourName = yourName
+                this._generator = new HtmlGenerator();
+              }
+
+              /**
+               * フォーマットされたテキストをもとに画面に表示する
+               * 
+               */
+              createMessage(text) {
+                  // 複数の全角または半角スペースをデリミタにする
+                  const formatText = text.replace(/[	| ]+/g, this.DELIMITER)
+                  //　半角スペースを分割
+                  const textArr = formatText.split(this.DELIMITER);
+
+                  // 日付・名前・テキストの３つ以下の場合は処理を終える
+                  /// 例：日付・メッセージの取り消しなど
+                  if(textArr.length < 3) {
+                      console.log(textArr)
+                      console.log(formatText)
+                      console.log('no msg')
+                      return
+                  }
+                  //以下のフォーマットではない場合は処理を行わない
+                  // 00:00 Name TEXTTEXT
+                  const time = textArr[0]
+                  const name = textArr[1]
+
+                  // 冒頭２つは削除
+                  textArr.shift()
+                  textArr.shift()
+                  console.log(textArr)
+
+
+
+
+                  const message = textArr.join(' ')
+                  console.log(message)
+
+                  // const time = textArr[0]
+                  // const name = textArr[1]
+                  // const message = textArr[2]
+
+                  if (name == this._yourName) {
+                    this._generator.createComment(time, name, message)
+                  } else {
+                    this._generator.createPartnerComment(time, name, message)
+                  }
+              }
+
+              /**
+               * コンテナの中身をリセットする
+               * 
+               */
+              reset() {
+                this._generator.reset()
+              }
+
+              /**
+               * textareaのデータを配列用に加工する
+               * 
+               */
+              formatLineMsgArr(text) {
+                const formatText = this._formatLineHistory(text);
+                const lineSplitText = this._splitNewLine(formatText)
+                return lineSplitText
+
+              }
+
+              /**
+               * LINE履歴をフォーマットする
+               * 
+               */
+              _formatLineHistory(text) {
+                  const ret = text.replace(/"([^"]*)"/g, (match, p1) => {
+                      return p1.replace(/(\n)/g, this.NEWLINE);
+                  })
+                  return ret;
+              }
+
+              /**
+               * 改行で分割する
+               * 
+               */
+              _splitNewLine(text) {
+                  return text.split("\n")
+              }
+
+
+            }
+
+            class HtmlGenerator {
+
+              constructor () {
+                this._container = document.getElementById('lineContents')
+              }
+
+
+              /**
+               * コンテナをリセットする
+               * 
+               */
+              reset() {
+                this._container.innerHTML = ''
+              }
+
+
+              /**
+               * 相手側の吹き出しを作成する
+               * 
+               */
+              createPartnerComment(time, name, message) {
+                  const div = document.createElement('div');
+                  div.classList.add('line__left');
+
+                  const icon = document.createElement('figure')
+                  // icon.innerHTML = '<img src="https://api.multiavatar.com/preety.png" />'
+                  icon.innerHTML = '<img src="https://iconbu.com/wp-content/uploads/2022/09/%E3%83%8F%E3%83%A0%E3%82%B9%E3%82%BF%E3%83%BC%E3%81%95%E3%82%93.jpg" />'
+
+                  //partner
+                  const divMessage = document.createElement('div');
+                  divMessage.classList.add('line__left-text');
+                  const divName = document.createElement('div');
+                  divName.classList.add('name');
+                  divName.innerHTML = '<br>' +name
+                  const divText = document.createElement('div');
+                  divText.classList.add('text');
+                  divText.innerHTML = message
+
+                  divMessage.appendChild(divName)
+                  divMessage.appendChild(divText)
+                  div.appendChild(icon)
+                  div.appendChild(divMessage)
+
+
+                  this._container.appendChild(div)
+              }
+
+              /**
+               * 自分側の吹き出しを作成する
+               * 
+               */
+              createComment(time, name, message) {
+                  const div = document.createElement('div');
+                  div.classList.add('line__right');
+
+
+                  const divDate = document.createElement('span');
+                  divDate.classList.add('date');
+                  divDate.innerHTML = '既読<br>'+time
+
+                  const divText = document.createElement('div');
+                  divText.classList.add('text');
+                  divText.innerHTML = message
+
+                  div.appendChild(divText)
+                  div.appendChild(divDate)
+
+
+                  this._container.appendChild(div)
+              }
+
+            }
+
+
+
+        </script>
+        <style>
+          body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            
+          }
+          /*/////////////////////////////////////////////////
+          //LINE風チャット画面(会話方式)を記事に表示する方法
+          /////////////////////////////////////////////////*/
+
+          .line__container {
+            padding:0;
+            background: #7494c0;    /* LINEトークルーム背景色 */
+            overflow: hidden;
+            max-width: 400px;
+            margin: 20px auto;
+            font-size: 80%;
+          }
+
+          /* 1 タイトル部分 */
+          .line__container .line__title {
+            background: #273246;
+            padding: 10px;
+            text-align: center;
+            font-size: 150%;
+            color: #ffffff;
+          }
+
+          /* 2 会話部分 */
+          .line__container .line__contents {
+            padding: 10px;
+            overflow: hidden;
+            line-height: 135%;
+          }
+
+          .line__container .scroll {
+            height: 1000px;
+            overflow-y: scroll;
+          }
+
+          /* 4 スタンプ画像最大幅 */
+          .line__container .stamp img {
+            max-width:120px;
+          }
+
+          /* 5 相手の会話 */
+          .line__container .line__left {
+              /*width: 100%;*/ display: inline-block;
+              position: relative;
+              display: block;
+              margin-bottom: 5px;
+              max-width: 90%;
+              clear: both;
+          }
+
+          /* 6 アイコン画像 */
+          .line__container .line__left figure {
+              width: 50px;
+              position: absolute;
+              top: 15px;
+              left: 0;
+              padding: 0;
+              margin: 0;
+
+          }
+
+          /* 7 正方形を用意 */
+          .line__container .line__left figure img{
+              border-radius: 50%;
+              width: 50px;
+              height: 50px;
+          }
+
+          .line__container .line__left .line__left-text {
+            margin-left: 60px;      /* 70px */
+          }
+
+          .line__container .line__left .line__left-text .name {
+            font-size: 80%;
+            color: #ffffff;
+          }
+
+          /* 10 コメントエリア */
+          .line__container .line__left .text {
+            margin: 0; display: inline-block;
+            position: relative;
+            padding: 10px;
+            border-radius: 20px;
+            background-color: #EDF1EE;  /* 吹き出し背景色 相手 */
+            color: #000000;   /* トーク文字色 相手 */
+            font-size: 11px;  /* トーク文字サイズ 相手 */
+          }
+
+          /* 11 吹き出し */
+          .line__container .line__left .text::after {
+            content: '';
+            position: absolute;
+            display: block;
+            width: 0;
+            height: 0;
+            left: -10px;
+            top: 3px;
+            border-right: 20px solid #EDF1EE;  /* 吹き出し枠線色 相手 */
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent; 
+            transform: rotate(35deg); -webkit-transform: rotate(35deg);
+          }
+
+          /* 12 自分の会話 */
+          .line__container .line__right {
+              position: relative;
+              display: block;
+              margin: 5px 0;
+              max-width: 95%;
+              float: right;
+              margin-right: 5px;   /* 15px */
+              clear: both;
+          }
+
+          /* 13 コメントエリア */
+          .line__container .line__right .text {
+            padding: 10px;
+            border-radius: 20px;
+            margin: 0;
+            margin-left: 80px;
+            background-color: #8de055;  /* 吹き出し背景色 自分 */
+            color: #000000;   /* トーク文字色 自分 */
+            font-size: 11px;  /* トーク文字サイズ 自分 */
+          }
+
+          /* 14 吹き出し */
+          .line__container .line__right .text::after {
+            content: '';
+            position: absolute;
+            display: block;
+            width: 0;
+            height: 0;
+            right: -10px;
+            top: 3px;
+            border-left: 20px solid #8de055;  /* 吹き出し枠線色 自分 */
+            border-top: 10px solid transparent;
+            border-bottom: 10px solid transparent;
+            transform: rotate(-35deg); -webkit-transform: rotate(-35deg);
+          }
+
+          /* 15 自分がスタンプを送る時 */
+          .line__container .line__right .stamp {
+            position: relative;
+            margin-left: 80px;
+          }
+
+          /* 16 時間エリア 相手
+          .line__container .line__left .time {
+            content: '';
+            position: absolute;
+            display: inline-block;
+            width: 0px;
+            text-align: left;
+            right: 0px;
+            bottom: 0px;
+            font-size: 80%;
+            color: #ffffff;
+          }
+          */
+
+          /* 17 既読／時間エリア 自分 */
+          .line__container .line__right .date {
+            content: '';
+            position: absolute;
+            display: block;
+            width: 100px;
+            text-align: right;
+            left: -25px;
+            bottom: 0px;
+            font-size: 80%;
+            color: #ffffff;
+          }
+
+        </style>
+    </body>
+</html>
