@@ -296,6 +296,7 @@
           const DISPLAYAREA = 'lineContents'
 
             document.getElementById(SENDER_BTN_ID).addEventListener('click', () => {
+                document.getElementById(SENDER_BTN_ID).focus();
                 //loading画面の表示
                 $('#loading').removeClass('invisible')
                 
