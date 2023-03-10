@@ -298,17 +298,20 @@
             document.getElementById(SENDER_BTN_ID).addEventListener('click', () => {
                 //loading画面の表示
                 $('#loading').removeClass('d-none')
+                window.addEventListener('touchmove', noScroll);
                 
                 setTimeout(() => {
                   //loading画面の表示
                   set()
+                  window.removeEventListener('touchmove', noScroll);
                   $('#loading').addClass('d-none')
-                }, 2000);
+                }, 2500);
 
 
             })
             
             function set() {
+                // 長文だと固まるため
                 // ユーザーネームを自分とする
                 const name = document.getElementById(USER_NAME_ID).value
                 const line = new LINE(name);
@@ -333,10 +336,15 @@
               //スクロールTOPへ
               window.scroll(0,0)
             }
+            
+            
             function getInputLineHistory() {
                 const textarea = document.getElementById(TEXTAREA)
                 const lineHistoryData = textarea.value
                 return lineHistoryData
+            }
+            function noScroll(e){
+                e.preventDefault();
             }
 
 
