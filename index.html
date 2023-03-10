@@ -15,7 +15,7 @@
     </head>
 
     <body>
-      <div id="loading" class="position-absolute top-0 start-0 w-100 h-100  d-none" style="z-index:9999;background-color: rgba(0,0,0, 0.6);">
+      <div id="loading" class="position-absolute top-0 start-0 w-100 min-vh-100  d-none" style="z-index:9999;background-color: rgba(0,0,0, 0.6);">
         <div class="text-center position-absolute top-50 start-50 w-100 translate-middle">
             <div class="spinner-border text-light" role="status">
                 <span class="sr-only"></span>
@@ -298,12 +298,10 @@
             document.getElementById(SENDER_BTN_ID).addEventListener('click', () => {
                 //loading画面の表示
                 $('#loading').removeClass('d-none')
-                window.addEventListener('touchmove', noScroll);
                 
                 setTimeout(() => {
                   //loading画面の表示
                   set()
-                  window.removeEventListener('touchmove', noScroll);
                   $('#loading').addClass('d-none')
                 }, 2500);
 
@@ -342,9 +340,6 @@
                 const textarea = document.getElementById(TEXTAREA)
                 const lineHistoryData = textarea.value
                 return lineHistoryData
-            }
-            function noScroll(e){
-                e.preventDefault();
             }
 
 
