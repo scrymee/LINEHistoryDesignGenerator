@@ -31,42 +31,16 @@
           <!-- 左フォーム -->
           <div id="form" class="col-md-6 p-3">
 
-            <h1 class="mb-5">テスト</h1>
-<style>
-:root {
-  --main-color: #313F44;
-  --main-blue: #3F51B5;
-  --main-red: #EC4079;
-}
-body {
-  font-family: -apple-system,Segoe UI,Helvetica Neue,Hiragino Kaku Gothic ProN,"メイリオ",meiryo,sans-serif;
-  color: #333;
-}
-h1 {
-    text-align: center;
-    padding: 0.5rem 0rem;
-    color: var(--main-color);
-    border-bottom: 2px dashed;
-    font-weight: bold;
-    font-size: 1.6rem;
-}
+            <h1 class="mb-5 d-sm-block d-none">フォーム</h1>
 
-h3 {
-  padding: 0.25em 0.5em 0.25rem 1.2rem;/*上下 左右の余白*/
-  color: var(--main-color);
-  background: transparent;/*背景透明に*/
-  border-left: solid 10px var(--main-color);/*左線*/
-  font-size: 1.1rem;
-}
-</style>
-              <h3>使い方</h3>
-              <div class="p-3 mb-4">
-                ラインのトーク画面を開く
-                ラインのトーク画面を開く
-                ラインのトーク画面を開く
-              </div>
+            <h3>使い方</h3>
+            <div class="p-3 mb-4">
+              <p>1. 「LINE履歴」に貼り付けて送信を押す</p>
+              <p>2. 自分の名前を自分の吹き出しにしたい場合は、ユーザー名にLINEの名前を入力する</p>
+            </div>
 
-            <h3 class="mb-3">使い方</h3>
+
+            <h3>フォーム</h3>
             <div class="mb-3">
               <label class="form-label">ユーザー名</label>
               <input type="text" class="form-control" id="line__name" placeholder="例）たろう">
@@ -78,16 +52,28 @@ h3 {
             <div class="mb-3">
               <div id="createLineImage" class="col-12 btn btn-outline-primary">送信</div>
             </div>
+
+            <h3>トーク履歴のコピーの仕方</h3>
+            <div class="p-3 mb-4">
+              <p>1. 履歴を残したいトーク画面を開く</p>
+              <p>2. 右上のハンバーガーメニューを選択</p>
+              <p>3. その他を選択</p>
+              <p>4. トーク履歴を送信を選択</p>
+              <p>5. コピーを選択</p>
+            </div>
+
+
           </div>
           <!-- 右フォーム -->
           <div id="result" class="col-md-6 p-3 d-sm-block d-none">
-            <h1 class="mb-5">結果</h1>
+            <h1 class="mb-5 d-sm-block d-none">結果</h1>
             <!-- ここからLINEのデザイン -->
-            <div id="lineView"class="line__container col" style="border:1px solid black;height:1100px">
+            <div id="lineView"class="line__container col" style="border:1px solid black;">
               <div class="line__title">
                 チャット名
               </div>
-              <div class="line__contents scroll" id="lineContents">
+              <div class="line__contents" id="lineContents">
+                 <p class="text-light">ここにトーク内容が表示されます</p>
               </div>
             </div>
             <!-- ここまでLINEのデザイン -->
@@ -150,7 +136,7 @@ h3 {
           }
 
           .line__container .scroll {
-            height: 1000px;
+            /* height: 100vh; */
             overflow-y: scroll;
           }
 
@@ -297,6 +283,7 @@ h3 {
           const SENDER_BTN_ID ='createLineImage'
           const USER_NAME_ID ="line__name"
           const TEXTAREA = 'line__historyText'
+          const DISPLAYAREA = 'lineContents'
 
             document.getElementById(SENDER_BTN_ID).addEventListener('click', () => {
 
@@ -313,6 +300,18 @@ h3 {
                 textArr.forEach(text => {
                   line.createMessage(text)
                 })
+
+
+                // タブがあれば切り替える
+              $("#form").toggleClass('d-none d-sm-block')
+              $("#result").toggleClass('d-none d-sm-block')
+              $("#formTab").toggleClass('text-primary')
+              $("#resultTab").toggleClass('text-primary')
+
+              //スクロールTOPへ
+              window.screenTop(0,0)
+
+
             })
             function getInputLineHistory() {
                 const textarea = document.getElementById(TEXTAREA)
@@ -394,6 +393,10 @@ h3 {
                 this._generator.reset()
               }
 
+              height() {
+                console.log(this._div.offsetHeight);
+              }
+
               /**
                * textareaのデータを配列用に加工する
                * 
@@ -430,7 +433,7 @@ h3 {
             class HtmlGenerator {
 
               constructor () {
-                this._container = document.getElementById('lineContents')
+                this._container = document.getElementById(DISPLAYAREA)
               }
 
 
@@ -441,6 +444,7 @@ h3 {
               reset() {
                 this._container.innerHTML = ''
               }
+
 
 
               /**
@@ -503,5 +507,6 @@ h3 {
 
 
         </script>
+        <link rel="stylesheet" href="main.css">
     </body>
 </html>
