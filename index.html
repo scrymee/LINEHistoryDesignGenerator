@@ -314,8 +314,10 @@
                   line.createMessage(text)
                 })
 
-                //loading画面の表示
-                $('#loading').addClass('d-none')
+                setTimeout(() => {
+                  //loading画面の表示
+                  $('#loading').addClass('d-none')
+                }, 2000);
 
                 // タブがあれば切り替える
               $("#form").toggleClass('d-none d-sm-block')
