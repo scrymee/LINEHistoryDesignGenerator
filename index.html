@@ -296,7 +296,9 @@
           const DISPLAYAREA = 'lineContents'
 
             document.getElementById(SENDER_BTN_ID).addEventListener('click', () => {
-
+                //loading画面の表示
+                $('#loading').removeClass('d-none')
+                
                 // ユーザーネームを自分とする
                 const name = document.getElementById(USER_NAME_ID).value
                 const line = new LINE(name);
@@ -306,8 +308,7 @@
                 const text = getInputLineHistory()
                 const textArr = line.formatLineMsgArr(text)
 
-                //loading画面の表示
-                $('#loading').removeClass('d-none')
+
                 // ユーザートーク内容を設定
                 textArr.forEach(text => {
                   line.createMessage(text)
