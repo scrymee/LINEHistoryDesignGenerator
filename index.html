@@ -299,6 +299,16 @@
                 //loading画面の表示
                 $('#loading').removeClass('d-none')
                 
+                setTimeout(() => {
+                  //loading画面の表示
+                  set()
+                  $('#loading').addClass('d-none')
+                }, 2000);
+
+
+            })
+            
+            function set() {
                 // ユーザーネームを自分とする
                 const name = document.getElementById(USER_NAME_ID).value
                 const line = new LINE(name);
@@ -314,11 +324,6 @@
                   line.createMessage(text)
                 })
 
-                setTimeout(() => {
-                  //loading画面の表示
-                  $('#loading').addClass('d-none')
-                }, 2000);
-
                 // タブがあれば切り替える
               $("#form").toggleClass('d-none d-sm-block')
               $("#result").toggleClass('d-none d-sm-block')
@@ -327,9 +332,7 @@
 
               //スクロールTOPへ
               window.scroll(0,0)
-
-
-            })
+            }
             function getInputLineHistory() {
                 const textarea = document.getElementById(TEXTAREA)
                 const lineHistoryData = textarea.value
