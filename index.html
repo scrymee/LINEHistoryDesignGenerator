@@ -296,7 +296,8 @@
           const DISPLAYAREA = 'lineContents'
 
             document.getElementById(SENDER_BTN_ID).addEventListener('click', () => {
-                document.getElementById('loading').height = document.body.offsetHeight;
+                const height = document.body.offsetHeight
+                document.getElementById('loading').style.height = `${height}px`
                 //loading画面の表示
                 $('#loading').removeClass('invisible')
                 
